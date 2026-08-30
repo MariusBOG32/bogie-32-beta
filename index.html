@@ -116,6 +116,7 @@
 @media(max-width:768px){.sortie-encart-lab{min-width:100%;padding-top:0}.sortie-encart{padding:11px 13px}.sortie-chip{padding:6px 12px;font-size:.85em}.sortie-hist-l{flex-wrap:wrap}}
 .card-sortie{display:flex;align-items:center;gap:5px;font-size:.72em;font-weight:600;color:#4d637c;background:#eef2f7;border-radius:6px;padding:3px 7px;margin-top:5px;}
 .card-sortie .material-icons{font-size:14px;}
+.card-sortie.prevu{color:#8a6116;background:#fdf2df;}
 .sortie-encart-btn{margin-left:auto;display:inline-flex;align-items:center;gap:4px;background:var(--accent);color:#fff;border:none;border-radius:8px;padding:7px 13px;font-size:.8em;font-weight:700;font-family:inherit;cursor:pointer;}
 .sortie-encart-btn:hover{filter:brightness(1.08);}
 .sortie-encart-btn .material-icons{font-size:16px;}
@@ -190,7 +191,7 @@
 <div class="modal-overlay" id="modalNewVoiture"><div class="modal" style="max-width:500px;"><div class="modal-header"><h2 id="modalNewVoitureTitle">🚃 Nouvelle voiture</h2><button class="modal-close" onclick="closeModal('modalNewVoiture')">×</button></div><div id="newVoitureForm"></div></div></div><div class="modal-overlay" id="modalParc"><div class="modal" style="max-width:500px;"><div class="modal-header"><h2 id="modalParcTitle">📦 Bogie de parc</h2><button class="modal-close" onclick="closeModal('modalParc')">×</button></div><div id="parcForm"></div></div></div><div class="modal-overlay" id="modalObj"><div class="modal" style="max-width:450px;"><div class="modal-header"><h2 id="modalObjTitle">🎯 Objectif</h2><button class="modal-close" onclick="closeModal('modalObj')">×</button></div><div id="objForm"></div></div></div><div class="modal-overlay" id="modalCloture"><div class="modal" style="max-width:520px;"><div class="modal-header"><h2 id="modalClotureTitle">📋 Bilan de semaine</h2><button class="modal-close" onclick="closeModal('modalCloture')">×</button></div><div id="modalClotureContent"></div></div></div>
 <div class="modal-overlay" id="modalRoues"><div class="modal" style="max-width:660px;"><div class="modal-header"><h2 id="modalRouesTitle">Roues</h2><button class="modal-close" onclick="closeModal('modalRoues')">×</button></div><div id="rouesContent"></div></div></div>
 <div class="jn-overlay" id="jnOverlay"><div class="jn-box" id="jnBox"><div class="jn-top"></div><div class="jn-body"><div class="jn-ic" id="jnIc"><span class="material-icons" id="jnIcon">info</span></div><div class="jn-txt"><div class="jn-titre" id="jnTitre">Information</div><div class="jn-msg" id="jnMsg"></div></div></div><div class="jn-actions" id="jnActions"></div></div></div>
-<div class="modal-overlay" id="modalTransport"><div class="modal" style="max-width:560px;"><div class="modal-header"><h2>🚚 Camion prestataire</h2><button class="modal-close" onclick="closeModal('modalTransport')">×</button></div><div id="transportContent"></div></div></div>
+<div class="modal-overlay" id="modalTransport"><div class="modal" style="max-width:560px;"><div class="modal-header"><h2>🚚 Camion SD Sablage</h2><button class="modal-close" onclick="closeModal('modalTransport')">×</button></div><div id="transportContent"></div></div></div>
 <div class="modal-overlay" id="modalEditVoiture"><div class="modal" style="max-width:500px;"><div class="modal-header"><h2 id="modalEditVoitureTitle">✏️ Modifier voiture</h2><button class="modal-close" onclick="closeModal('modalEditVoiture')">×</button></div><div id="editVoitureForm"></div></div></div>
 <script>
 /* ════════════════════════════════════════════════════════════
@@ -281,7 +282,7 @@ function getBogiesForColonne(colonne){const r=[];Object.entries(bogiesData).forE
 function getColonneForBogie(b){return currentChantier==='Y32'?getColonneY32(b):getColonneY25(b);}
 function getColonneY32(b){const et=b.etapes||{};const _E=etapesBogie(b);if(_E.every(e=>et[e.id]==='vert'))return'Terminés';let last='Attente démontage';for(let i=_E.length-1;i>=0;i--){const s=et[_E[i].id];if(s==='orange'||s==='vert'){last=_E[i].colonne;break;}}return last;}
 function getColonneY25(b){const et=b.etapes||{};if(et['08']==='vert'||ETAPES_Y25.every(e=>et[e.id]==='vert'))return'Prêt';if(et['06']==='vert')return'Réparation / Remontage';if(et['06']==='orange')return'Magnétoscopie';if(et['01']==='vert'||et['02']==='vert'||et['01']==='orange'||et['02']==='orange')return'Ctrl gauche / Démontage';if(Object.values(et).some(v=>v==='orange'||v==='vert'))return'Ctrl gauche / Démontage';return'Attente';}
-function renderKanbanCard(b){const progress=getProgress(b);const complete=isBogieComplete(b);const cls=['kanban-card',b.bloque?'blocked':'',b.urgent?'urgent':'',b.bloque?'grised':'',complete&&!b.archive?'done':''].filter(Boolean).join(' ');const badges=[b.archive?'<span class="badge badge-archived">Sorti</span>':'',b.bloque?'<span class="badge badge-blocked">Bloqué</span>':'',b.enAttente&&!b.bloque?'<span class="badge badge-attente">En attente</span>':'',b.urgent?'<span class="badge badge-urgent">Prioritaire</span>':''].filter(Boolean).join(' ');const sub=currentChantier==='Y32'?(b.voitureSortie?'→ Voit. '+b.voitureSortie:''):(b.typologie||'');let dateHtml='';if(currentChantier==='Y32'&&!b.archive){if(complete)dateHtml=`<div class="card-date pret"><span class="material-icons">check_circle</span> Prêt à sortir</div>`;else{const ds=getDateSortieEstimee(b);if(ds){const ret=isRetard(ds);dateHtml=`<div class="card-date ${ret?'retard':''}"><span class="material-icons">${ret?'warning':'event'}</span> ${ret?'Retard — ':''}${formatDateFr(ds)}</div>`;}}}const _so=sortieEnCours(b);if(_so&&!b.archive)dateHtml+=`<div class="card-sortie"><span class="material-icons">local_shipping</span> ${nomPoste(_so.poste)} · parti ${formatDateFrJour(_so.depart)}</div>`;const hasAlerte=notesActives(b).length>0;const stagne=bogieStagne(b.id,b);const symb=`${b.bloque?'<span class="badge badge-blocked">Bloqué</span>':''}${b.enAttente&&!b.bloque?'<span class="badge badge-attente">En attente</span>':''}${b.urgent?'<span class="badge badge-urgent">Prioritaire</span>':''}${hasAlerte?'<span class="material-icons" style="font-size:15px;color:var(--orange);vertical-align:middle;" title="Note non résolue">sticky_note_2</span>':''}${stagne?'<span class="material-icons" style="font-size:15px;color:var(--orange);vertical-align:middle;" title="Sans activité depuis 7j+">hourglass_empty</span>':''}`;return`<div class="${cls}" style="${b.archive?'opacity:.6':''}" onclick="openFicheBogie('${b.id}')"><div class="card-head"><span class="card-num">Bogie ${b.numero||b.id}</span>${currentChantier==='Y32'?bogiePariteBadge(b.numero||b.id):''}</div>${symb.trim()?`<div class="card-symbols">${symb}</div>`:''}${b.archive&&b.voitureSortie?`<div class="card-sub">→ Voit. ${b.voitureSortie}</div>`:(currentChantier==='Y32'&&b.voitureSortie&&!b.archive?`<div class="card-sub">→ Voit. ${b.voitureSortie}</div>`:(currentChantier==='Y25'&&b.typologie?`<div class="card-sub">${b.typologie}</div>`:''))}${dateHtml}<div class="card-progress"><div class="card-progress-bar" style="width:${progress}%"></div></div></div>`;}
+function renderKanbanCard(b){const progress=getProgress(b);const complete=isBogieComplete(b);const cls=['kanban-card',b.bloque?'blocked':'',b.urgent?'urgent':'',b.bloque?'grised':'',complete&&!b.archive?'done':''].filter(Boolean).join(' ');const badges=[b.archive?'<span class="badge badge-archived">Sorti</span>':'',b.bloque?'<span class="badge badge-blocked">Bloqué</span>':'',b.enAttente&&!b.bloque?'<span class="badge badge-attente">En attente</span>':'',b.urgent?'<span class="badge badge-urgent">Prioritaire</span>':''].filter(Boolean).join(' ');const sub=currentChantier==='Y32'?(b.voitureSortie?'→ Voit. '+b.voitureSortie:''):(b.typologie||'');let dateHtml='';if(currentChantier==='Y32'&&!b.archive){if(complete)dateHtml=`<div class="card-date pret"><span class="material-icons">check_circle</span> Prêt à sortir</div>`;else{const ds=getDateSortieEstimee(b);if(ds){const ret=isRetard(ds);dateHtml=`<div class="card-date ${ret?'retard':''}"><span class="material-icons">${ret?'warning':'event'}</span> ${ret?'Retard — ':''}${formatDateFr(ds)}</div>`;}}}const _so=sortieEnCours(b);if(_so&&!b.archive)dateHtml+=`<div class="card-sortie${estAVenir(_so.depart)?' prevu':''}"><span class="material-icons">local_shipping</span> ${nomPoste(_so.poste)} · ${estAVenir(_so.depart)?'départ prévu':'parti'} ${formatDateFrJour(_so.depart)}</div>`;const hasAlerte=notesActives(b).length>0;const stagne=bogieStagne(b.id,b);const symb=`${b.bloque?'<span class="badge badge-blocked">Bloqué</span>':''}${b.enAttente&&!b.bloque?'<span class="badge badge-attente">En attente</span>':''}${b.urgent?'<span class="badge badge-urgent">Prioritaire</span>':''}${hasAlerte?'<span class="material-icons" style="font-size:15px;color:var(--orange);vertical-align:middle;" title="Note non résolue">sticky_note_2</span>':''}${stagne?'<span class="material-icons" style="font-size:15px;color:var(--orange);vertical-align:middle;" title="Sans activité depuis 7j+">hourglass_empty</span>':''}`;return`<div class="${cls}" style="${b.archive?'opacity:.6':''}" onclick="openFicheBogie('${b.id}')"><div class="card-head"><span class="card-num">Bogie ${b.numero||b.id}</span>${currentChantier==='Y32'?bogiePariteBadge(b.numero||b.id):''}</div>${symb.trim()?`<div class="card-symbols">${symb}</div>`:''}${b.archive&&b.voitureSortie?`<div class="card-sub">→ Voit. ${b.voitureSortie}</div>`:(currentChantier==='Y32'&&b.voitureSortie&&!b.archive?`<div class="card-sub">→ Voit. ${b.voitureSortie}</div>`:(currentChantier==='Y25'&&b.typologie?`<div class="card-sub">${b.typologie}</div>`:''))}${dateHtml}<div class="card-progress"><div class="card-progress-bar" style="width:${progress}%"></div></div></div>`;}
 function getProgress(b){const etapes=etapesBogie(b);const be=b.etapes||{};let done=0;etapes.forEach(e=>{if(be[e.id]==='vert')done++;});return Math.round((done/etapes.length)*100);}
 function calcEquilibreParite(){let imp=0,pair=0,bloques=0,attente=0;Object.entries(bogiesData).forEach(([id,b])=>{if(b.archive)return;if(isBogieComplete(b)&&b.dateSortie)return;
 if(b.bloque){bloques++;return;}
@@ -319,6 +320,7 @@ function posteCandidat(b){if(currentChantier!=='Y32'||!b||b.archive||b.bloque)re
 function nomPoste(p){return (POSTES_SORTIE[p]&&POSTES_SORTIE[p].nom)||p||'';}
 function formatDateFrJour(ds){if(!ds)return'—';return new Date(ds+'T12:00:00').toLocaleDateString('fr-FR',{weekday:'short',day:'2-digit',month:'short'});}
 function joursDepuis(ds){if(!ds)return 0;return Math.max(0,Math.round((new Date(dateLocale(new Date())+'T12:00:00')-new Date(ds+'T12:00:00'))/864e5));}
+function estAVenir(ds){if(!ds)return false;return ds>dateLocale(new Date());}
 function _agentCourant(){return (currentUser&&(currentUser.nom||currentUser.email))||'';}
 
 async function declarerDepart(bogieId,poste){
@@ -377,7 +379,10 @@ let h='<div class="sortie-bloc"><div class="sortie-titre"><span class="material-
 h+='<div class="sortie-sub">Grenaillage et peinture. Dates saisies à la main : aucune date n\'est déduite automatiquement.</div>';
 if(enc){
 const j=joursDepuis(enc.depart);
-h+='<div class="sortie-encours"><div class="sortie-encours-head"><span class="material-icons">schedule</span><div><div class="sortie-encours-t">Hors atelier — '+nomPoste(enc.poste)+'</div><div class="sortie-encours-s">Parti le '+formatDateFrJour(enc.depart)+(j>0?' · '+j+' jour'+(j>1?'s':''):' · aujourd\'hui')+(enc.agentDepart?' · '+enc.agentDepart:'')+'</div></div></div>';
+const fut=estAVenir(enc.depart);
+const titre=fut?('Départ prévu — '+nomPoste(enc.poste)):('Hors atelier — '+nomPoste(enc.poste));
+const ligne=fut?('Prévu le '+formatDateFrJour(enc.depart)):('Parti le '+formatDateFrJour(enc.depart)+(j>0?' · '+j+' jour'+(j>1?'s':''):' · aujourd\'hui'));
+h+='<div class="sortie-encours"><div class="sortie-encours-head"><span class="material-icons">'+(fut?'event_upcoming':'schedule')+'</span><div><div class="sortie-encours-t">'+titre+'</div><div class="sortie-encours-s">'+ligne+(enc.agentDepart?' · '+enc.agentDepart:'')+'</div></div></div>';
 if(isResp){
 h+='<label class="sortie-lab">Date de retour</label><input type="date" class="sortie-date" id="sortieDateRet-'+enc.key+'" value="'+auj+'">';
 h+='<button class="btn btn-primary sortie-btn" onclick="declarerRetour(\''+bogieId+'\',\''+enc.key+'\')"><span class="material-icons">login</span> Déclarer le retour</button>';
@@ -386,7 +391,7 @@ if(isResp)h+='<button class="sortie-suppr" onclick="supprimerSortie(\''+bogieId+
 h+='</div>';
 }else if(cand){
 h+='<div class="sortie-depart"><div class="sortie-depart-t"><span class="material-icons">'+POSTES_SORTIE[cand].icone+'</span> Départ en '+nomPoste(cand).toLowerCase()+'</div>';
-h+='<div class="sortie-depart-s">Ce bogie est en colonne <strong>'+POSTES_SORTIE[cand].colonne+'</strong> : il peut partir en '+nomPoste(cand).toLowerCase()+'.</div>';
+h+='<div class="sortie-depart-s">Ce bogie est en colonne <strong>'+libColonnesPoste(cand)+'</strong> : il peut partir en '+nomPoste(cand).toLowerCase()+'.</div>';
 if(isResp){
 h+='<label class="sortie-lab">Date de départ</label><input type="date" class="sortie-date" id="sortieDateDep-'+bogieId+'" value="'+auj+'">';
 h+='<button class="btn btn-primary sortie-btn" onclick="declarerDepart(\''+bogieId+'\',\''+cand+'\')"><span class="material-icons">logout</span> Déclarer le départ</button>';
@@ -449,7 +454,7 @@ h+='<label class="trsp-l"><input type="checkbox" class="trspDep" value="'+c.id+'
 });
 h+='</div>';}
 h+='<div class="trsp-sec"><span class="material-icons">login</span> Retours <span class="trsp-cnt">'+dehors.length+' dehors</span></div>';
-if(!dehors.length)h+='<div class="trsp-vide">Aucun bogie chez le prestataire actuellement.</div>';
+if(!dehors.length)h+='<div class="trsp-vide">Aucun bogie chez SD Sablage actuellement.</div>';
 else{h+='<div class="trsp-liste">';
 dehors.forEach(d=>{
 const j=joursDepuis(d.depart);
@@ -503,7 +508,7 @@ if(currentChantier!=='Y32')return'';
 if(!pref('alerteSorties'))return'';
 const lundi=dateLocale(lundiDeLaSemaine(0));
 const _d=lundiDeLaSemaine(0);_d.setDate(_d.getDate()+6);const dim=dateLocale(_d);
-const dehors=[],partis=[],revenus=[];
+let dehors=[],partis=[],revenus=[];
 Object.entries(bogiesData).forEach(([id,b])=>{
 const num=b.numero||id;
 sortiesBogie(b).forEach(s=>{
@@ -516,20 +521,26 @@ const isResp=peutSaisirSortie();
 const nbCand=isResp?transportCandidats().length:0;
 if(!dehors.length&&!partis.length&&!revenus.length&&!nbCand)return'';
 const chip=(o,txt)=>'<span class="sortie-chip'+(o.s.poste==='peinture'?' pt':'')+'" onclick="openFicheBogie(\''+o.id+'\')" title="Ouvrir la fiche">'+o.num+' <em>'+txt+'</em></span>';
-let h='<div class="sortie-encart"><div class="sortie-encart-head"><span class="material-icons">local_shipping</span><div class="sortie-encart-t">Prestataire extérieur — semaine du '+formatDateFrJour(lundi)+'</div>'+(isResp?'<button class="sortie-encart-btn" onclick="openTransport()"><span class="material-icons">add</span> Camion</button>':'')+'</div>';
+let h='<div class="sortie-encart"><div class="sortie-encart-head"><span class="material-icons">local_shipping</span><div class="sortie-encart-t">SD Sablage — semaine du '+formatDateFrJour(lundi)+'</div>'+(isResp?'<button class="sortie-encart-btn" onclick="openTransport()"><span class="material-icons">add</span> Camion</button>':'')+'</div>';
+const prevus=dehors.filter(o=>estAVenir(o.s.depart));
+dehors=dehors.filter(o=>!estAVenir(o.s.depart));
+if(prevus.length){
+prevus.sort((a,b)=>String(a.s.depart).localeCompare(String(b.s.depart)));
+h+='<div class="sortie-encart-l"><span class="sortie-encart-lab">Départs prévus ('+prevus.length+')</span><div class="sortie-chips">'+prevus.map(o=>chip(o,nomPoste(o.s.poste)+' · '+formatDateFrJour(o.s.depart))).join('')+'</div></div>';
+}
 if(dehors.length){
 dehors.sort((a,b)=>String(a.s.depart).localeCompare(String(b.s.depart)));
-h+='<div class="sortie-encart-l"><span class="sortie-encart-lab">Hors atelier ('+dehors.length+')</span><div class="sortie-chips">'+dehors.map(o=>{const j=joursDepuis(o.s.depart);return chip(o,nomPoste(o.s.poste)+' · '+(j>0?j+'j':'auj.'));}).join('')+'</div></div>';
+h+='<div class="sortie-encart-l"><span class="sortie-encart-lab">Chez SD Sablage ('+dehors.length+')</span><div class="sortie-chips">'+dehors.map(o=>{const j=joursDepuis(o.s.depart);return chip(o,nomPoste(o.s.poste)+' · '+(j>0?j+'j':'auj.'));}).join('')+'</div></div>';
 }
 if(partis.length){
 partis.sort((a,b)=>String(a.s.depart).localeCompare(String(b.s.depart)));
-h+='<div class="sortie-encart-l"><span class="sortie-encart-lab">Partis ('+partis.length+')</span><div class="sortie-chips">'+partis.map(o=>chip(o,nomPoste(o.s.poste)+' · '+formatDateFrJour(o.s.depart))).join('')+'</div></div>';
+h+='<div class="sortie-encart-l"><span class="sortie-encart-lab">Départs de la semaine ('+partis.length+')</span><div class="sortie-chips">'+partis.map(o=>chip(o,nomPoste(o.s.poste)+' · '+formatDateFrJour(o.s.depart))).join('')+'</div></div>';
 }
 if(revenus.length){
 revenus.sort((a,b)=>String(a.s.retour).localeCompare(String(b.s.retour)));
 h+='<div class="sortie-encart-l"><span class="sortie-encart-lab">Revenus ('+revenus.length+')</span><div class="sortie-chips">'+revenus.map(o=>chip(o,nomPoste(o.s.poste)+' · '+formatDateFrJour(o.s.retour))).join('')+'</div></div>';
 }
-if(!dehors.length&&!partis.length&&!revenus.length)h+='<div class="sortie-encart-vide">Aucun bogie chez le prestataire. '+nbCand+' bogie'+(nbCand>1?'s':'')+' en position de partir.</div>';
+if(!dehors.length&&!partis.length&&!revenus.length)h+='<div class="sortie-encart-vide">Aucun bogie chez SD Sablage. '+nbCand+' bogie'+(nbCand>1?'s':'')+' en position de partir.</div>';
 h+='</div>';
 return h;
 }
